@@ -81,6 +81,7 @@ type TaskFormValues = {
   executorProfileId: ExecutorProfileId | null;
   repoBranches: RepoBranch[];
   autoStart: boolean;
+  branchName: string;
 };
 
 const TaskFormDialogImpl = NiceModal.create<TaskFormDialogProps>((props) => {
@@ -136,6 +137,7 @@ const TaskFormDialogImpl = NiceModal.create<TaskFormDialogProps>((props) => {
           executorProfileId: baseProfile,
           repoBranches: defaultRepoBranches,
           autoStart: false,
+          branchName: '',
         };
 
       case 'duplicate':
@@ -146,6 +148,7 @@ const TaskFormDialogImpl = NiceModal.create<TaskFormDialogProps>((props) => {
           executorProfileId: baseProfile,
           repoBranches: defaultRepoBranches,
           autoStart: true,
+          branchName: '',
         };
 
       case 'subtask':
@@ -158,6 +161,7 @@ const TaskFormDialogImpl = NiceModal.create<TaskFormDialogProps>((props) => {
           executorProfileId: baseProfile,
           repoBranches: defaultRepoBranches,
           autoStart: true,
+          branchName: '',
         };
     }
   }, [mode, props, system.config?.executor_profile, defaultRepoBranches]);
@@ -202,6 +206,7 @@ const TaskFormDialogImpl = NiceModal.create<TaskFormDialogProps>((props) => {
             task,
             executor_profile_id: value.executorProfileId!,
             repos,
+            branch_name: value.branchName.trim() || null,
           },
           { onSuccess: () => modal.remove() }
         );
@@ -213,6 +218,9 @@ const TaskFormDialogImpl = NiceModal.create<TaskFormDialogProps>((props) => {
 
   const validator = (value: TaskFormValues): string | undefined => {
     if (!value.title.trim().length) return 'need title';
+    if (value.branchName.trim() && value.branchName.includes(' ')) {
+      return 'branch name cannot contain spaces';
+    }
     if (value.autoStart && !forceCreateOnlyRef.current) {
       if (!value.executorProfileId) return 'need executor profile';
       if (
@@ -609,6 +617,47 @@ const TaskFormDialogImpl = NiceModal.create<TaskFormDialogProps>((props) => {
                   </div>
                 );
               }}
+            </form.Field>
+          )}
+
+          {/* Branch Name (optional custom name) */}
+          {!editMode && (
+            <form.Field name="autoStart" mode="array">
+              {(autoStartField) => (
+                <div
+                  className={cn(
+                    'px-4 py-2 transition-opacity duration-200',
+                    autoStartField.state.value
+                      ? 'opacity-100'
+                      : 'opacity-0 pointer-events-none'
+                  )}
+                >
+                  <form.Field name="branchName">
+                    {(field) => (
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="branch-name"
+                          className="text-sm font-medium text-muted-foreground"
+                        >
+                          {t('taskFormDialog.branchNameLabel')}{' '}
+                          <span className="font-normal">
+                            ({t('common:labels.optional')})
+                          </span>
+                        </Label>
+                        <Input
+                          id="branch-name"
+                          type="text"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder={t('taskFormDialog.branchNamePlaceholder')}
+                          disabled={isSubmitting || !autoStartField.state.value}
+                          className="text-sm"
+                        />
+                      </div>
+                    )}
+                  </form.Field>
+                </div>
+              )}
             </form.Field>
           )}
 

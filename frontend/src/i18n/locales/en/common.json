@@ -21,6 +21,9 @@
     "success": "Success",
     "reconnecting": "Reconnecting"
   },
+  "labels": {
+    "optional": "optional"
+  },
   "language": {
     "browserDefault": "Browser Default"
   },

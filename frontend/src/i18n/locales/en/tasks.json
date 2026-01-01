@@ -457,6 +457,8 @@
       "done": "Done",
       "cancelled": "Cancelled"
     },
+    "branchNameLabel": "Branch Name",
+    "branchNamePlaceholder": "e.g., feature/my-branch",
     "startLabel": "Start",
     "attachImage": "Attach image",
     "dropImagesHere": "Drop images here",

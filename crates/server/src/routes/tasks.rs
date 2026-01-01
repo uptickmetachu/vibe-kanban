@@ -145,6 +145,7 @@ pub struct CreateAndStartTaskRequest {
     pub task: CreateTask,
     pub executor_profile_id: ExecutorProfileId,
     pub repos: Vec<WorkspaceRepoInput>,
+    pub branch_name: Option<String>,
 }
 
 pub async fn create_task_and_start(
@@ -183,10 +184,15 @@ pub async fn create_task_and_start(
         .ok_or(ProjectError::ProjectNotFound)?;
 
     let attempt_id = Uuid::new_v4();
-    let git_branch_name = deployment
-        .container()
-        .git_branch_from_workspace(&attempt_id, &task.title)
-        .await;
+    let git_branch_name = match &payload.branch_name {
+        Some(custom_name) if !custom_name.trim().is_empty() => custom_name.trim().to_string(),
+        _ => {
+            deployment
+                .container()
+                .git_branch_from_workspace(&attempt_id, &task.title)
+                .await
+        }
+    };
 
     let agent_working_dir = project
         .default_agent_working_dir

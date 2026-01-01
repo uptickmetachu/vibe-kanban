@@ -108,6 +108,7 @@ pub struct CreateTaskAttemptBody {
     pub task_id: Uuid,
     pub executor_profile_id: ExecutorProfileId,
     pub repos: Vec<WorkspaceRepoInput>,
+    pub branch_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ts_rs::TS)]
@@ -154,10 +155,15 @@ pub async fn create_task_attempt(
         .cloned();
 
     let attempt_id = Uuid::new_v4();
-    let git_branch_name = deployment
-        .container()
-        .git_branch_from_workspace(&attempt_id, &task.title)
-        .await;
+    let git_branch_name = match &payload.branch_name {
+        Some(custom_name) if !custom_name.trim().is_empty() => custom_name.trim().to_string(),
+        _ => {
+            deployment
+                .container()
+                .git_branch_from_workspace(&attempt_id, &task.title)
+                .await
+        }
+    };
 
     let workspace = Workspace::create(
         pool,
