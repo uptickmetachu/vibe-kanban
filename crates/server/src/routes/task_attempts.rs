@@ -251,6 +251,8 @@ pub async fn stream_task_attempt_diff_ws(
     Extension(workspace): Extension<Workspace>,
     State(deployment): State<DeploymentImpl>,
 ) -> impl IntoResponse {
+    let _ = Workspace::touch(&deployment.db().pool, workspace.id).await;
+
     let stats_only = params.stats_only;
     ws.on_upgrade(move |socket| async move {
         if let Err(e) = handle_task_attempt_diff_ws(socket, deployment, workspace, stats_only).await
@@ -526,6 +528,9 @@ pub async fn open_task_attempt_in_editor(
         .container()
         .ensure_container_exists(&workspace)
         .await?;
+
+    Workspace::touch(&deployment.db().pool, workspace.id).await?;
+
     let workspace_path = Path::new(&container_ref);
 
     // For single-repo projects, open from the repo directory
